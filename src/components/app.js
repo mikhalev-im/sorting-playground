@@ -18,6 +18,7 @@ import { Container, Paper, Typography } from "@material-ui/core";
  */
 
 const useD3 = () => {
+  let currentIndex = 0;
   const SAMPLE_DATA = [24, 17, 43, 6, 12];
 
   useEffect(() => {
@@ -48,10 +49,32 @@ const useD3 = () => {
       .attr("class", "bar")
       .attr("x", xScale)
       .attr("width", xScale.bandwidth())
-      .attr("height", num => height - yScale(num) - yPadding / 2);
+      .attr("height", num => height - yScale(num) - yPadding / 2)
+      .attr('data-value', (val) => val);
 
-    const sort = () => {
-      SAMPLE_DATA.sort((a, b) => a - b);
+    const deselect = () => {
+      d3
+        .select(`[data-active='true']`)
+        .attr('data-active', false)
+        .style('fill', '');
+    }
+
+    const selectBar = (value) => {
+      // deselect prev
+      deselect();
+
+      d3
+        .select(`[data-value='${value}']`)
+        .transition()
+        .duration(100)
+        .attr('data-active', true)
+        .style("fill", 'red');
+    }
+
+    const swap = (a, b) => {
+      const prev = SAMPLE_DATA[b];
+      SAMPLE_DATA[b] = SAMPLE_DATA[a];
+      SAMPLE_DATA[a] = prev;
 
       xScale.domain(SAMPLE_DATA);
 
@@ -60,9 +83,63 @@ const useD3 = () => {
         .duration(750)
         .selectAll("rect")
         .attr("x", xScale);
-    };
+    }
 
-    setTimeout(sort, 3000);
+    const delay = async (time) => new Promise(resolve => setTimeout(resolve, time))
+
+    const start = async () => {
+      let currentPosition = 0;
+
+      selectBar(SAMPLE_DATA[currentIndex]);
+      currentIndex++;
+      await delay(1000);
+
+      selectBar(SAMPLE_DATA[currentIndex]);
+      await delay(1000);
+
+      swap(currentIndex, currentIndex - 1);
+      await delay(1000);
+
+      currentIndex++;
+      selectBar(SAMPLE_DATA[currentIndex]);
+      await delay(1000);
+
+      currentIndex++;
+      selectBar(SAMPLE_DATA[currentIndex]);
+      await delay(1000);
+
+      swap(currentIndex, currentIndex - 1);
+      currentPosition = currentIndex - 1;
+      await delay(1000);
+
+      swap(currentPosition, currentPosition - 1);
+      currentPosition--;
+      await delay(1000);
+
+      swap(currentPosition, currentPosition - 1);
+      currentPosition--;
+      await delay(1000);
+
+      currentIndex++;
+      selectBar(SAMPLE_DATA[currentIndex]);
+      await delay(1000);
+
+      swap(currentIndex, currentIndex - 1);
+      currentPosition = currentIndex - 1;
+      await delay(1000);
+
+      swap(currentPosition, currentPosition - 1);
+      currentPosition--;
+      await delay(1000);
+
+      swap(currentPosition, currentPosition - 1);
+      currentPosition--;
+      await delay(1000);
+
+      deselect();
+    }
+
+    start();
   });
 };
 
@@ -76,8 +153,8 @@ function App() {
       </Typography>
       <Paper elevation={5} square={true} className="paper">
         <div className="controls"></div>
-        <div class="scene">
-          <svg class="svg"></svg>
+        <div className="scene">
+          <svg className="svg"></svg>
         </div>
       </Paper>
     </Container>
